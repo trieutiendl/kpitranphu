@@ -1,0 +1,38 @@
+name: Tao APK Android debug
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Cai phu thuoc va kiem thu
+        run: |
+          npm install --no-audit --no-fund
+          npm run test
+          npm run build
+      - name: Tao du an Android Capacitor
+        run: |
+          npx cap add android
+          npx cap sync android
+      - name: Build APK debug
+        working-directory: android
+        run: ./gradlew assembleDebug
+      - name: Tai APK len artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chuyen-tep-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
